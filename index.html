@@ -21,6 +21,7 @@
                        'dark-surface': '#1F2937', // Gray 800 (Card background)
                        'dark-input': '#374151',  // Gray 700 (Input/Option background)
                        'very-dark': '#111827', // Gray 900 (Body background)
+                       'accent-red': '#EF4444', // Red 500 for secondary product border
                    }
                }
            }
@@ -70,11 +71,17 @@
    </div>
 
    <script type="text/javascript">
+       // --- Hardcoded Logo URL ---
+       // 💡 REPLACE THE URL BELOW with the URL of your PNG logo. 
+       // If you remove the URL (set to null), no logo area will display.
+       const HARDCODED_LOGO_URL = "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_79.jpg";
+
+
        // --- Core State Management ---
        const quizApp = document.getElementById('quiz-app');
        const userState = {
            step: 1,
-           maxSteps: 6, // 5 question steps (1-5) and 1 results step (6)
+           maxSteps: 8, // 7 question steps (1-7) and 1 results step (8)
            answers: {
                name: null, 
                goal: null, 
@@ -82,41 +89,39 @@
                age: null,
                height_cm: null,
                weight_kg: null,
-               target_weight_kg: null, // ADDED: Target weight
+               target_weight_kg: null,
                activity: null, 
                diet_plan: null,
+               experience: null, // NEW: Experience Level
+               focus: null,      // NEW: Program Focus (Workout, Diet, Complete)
            },
            calculated: {
                bmr: 0,
                tdee: 0,
-               recommendedProduct: null,
-               productLink: null,
-               productDescription: null,
                calorieTarget: 0,
+               finalProducts: [], // NEW: Array to hold one or two recommended products
            }
        };
 
+       // --- Products Object ---
        const PRODUCTS = {
-           lose: {
-               name: "4 Week Beginner Fat Loss Challenge",
-               description: "A comprehensive plan focused on fat loss.",
-               link: "https://payhip.com/b/oOQyC",
-               image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_77.jpg"
-           },
-           gain: {
-               name: "The Mass Builder Strength Program",
-               description: "Structured progressive overload training and high-protein nutrition guidance designed for muscle hypertrophy.",
-               link: "https://yourwebsite.com/product/mass-builder",
-               image: "https://placehold.co/150x150/EF4444/ffffff?text=Muscle+Gain"
-           },
-           maintain: {
-               name: "The Holistic Wellness Guide",
-               description: "A balanced approach to fitness, focusing on flexibility, endurance, and mindful eating for long-term health and energy.",
-               link: "https://yourwebsite.com/product/wellness-guide",
-               image: "https://placehold.co/150x150/3B82F6/ffffff?text=Balanced+Fitness"
-           }
-       };
+           // 9 Main Systems (Workout + Diet) determined by Goal & Experience
+           lose_beginner: { type: "System", name: "Beginner 4-Week Fat Loss & Nutrition Starter", link: "https://payhip.com/p/LBS", description: "Simple workouts, form instruction, and basic calorie deficit tracking." },
+           lose_intermediate: { type: "System", name: "Intermediate 8-Week Shredding Program", link: "https://payhip.com/p/LIM", description: "Progressive compound lifts, effective splits, and moderate calorie cycling." },
+           lose_advanced: { type: "System", name: "Elite Max-Fat Burn Protocol", link: "https://payhip.com/p/LAE", description: "Intense training, advanced techniques, and aggressive deficit strategies for maximum definition." },
 
+           gain_beginner: { type: "System", name: "Start Strong: Beginner Muscle Mass System", link: "https://payhip.com/p/GBS", description: "Fundamental movements, proper muscle activation, and basic surplus tracking." },
+           gain_intermediate: { type: "System", name: "Hypertrophy Accelerator Program", link: "https://payhip.com/p/GIM", description: "Optimized volume training splits, progressive overload, and customized macros." },
+           gain_advanced: { type: "System", name: "Pro-Level Strength & Size Program", link: "https://payhip.com/p/GAE", description: "Periodized cycles, high-frequency training, and strategic recovery." },
+
+           maintain_beginner: { type: "System", name: "Foundational Fitness & Health Guide", link: "https://payhip.com/p/MBS", description: "Establishing habits, functional training, and balanced energy levels." },
+           maintain_intermediate: { type: "System", name: "Balanced Lifestyle and Endurance Plan", link: "https://payhip.com/p/MIM", description: "Optimizing stamina, mobility, and body composition maintenance." },
+           maintain_advanced: { type: "System", name: "Peak Performance & Longevity Plan", link: "https://payhip.com/p/MAE", description: "Maintaining elite fitness, managing fatigue, and recovery focus." },
+
+           // Dedicated Diet/Nutrition Products (Used when 'focus' is Diet or Complete)
+           pure_diet_plan: { type: "Diet Only", name: "The Complete Nutrition Strategy Manual", link: "https://payhip.com/p/DietOnly", description: "Comprehensive guidance on meal timing, tracking, and calculating macros—no workout plan included." },
+           diet_manual_add_on: { type: "Diet Add-On", name: "Exclusive Recipe & Meal Prep Manual", link: "https://payhip.com/p/AddOnDiet", description: "Your supplementary guide for thousands of meal ideas and preparation tips to pair with any workout system." },
+       };
        // --- Utility Functions ---
 
        /**
@@ -148,7 +153,7 @@
            quizApp.innerHTML = ''; // Clear previous content
 
            const stepContent = getStepContent(userState.step);
-           // Total number of visible question screens (6 max steps - 1 results step = 5)
+           // Total number of visible question screens
            const totalVisibleSteps = userState.maxSteps - 1; 
 
            // Display step counter only for question steps
@@ -158,7 +163,17 @@
                   </span>`
                : '';
 
+           // Hardcoded Logo Display Logic (Only show on Step 1, with max-h-12 for slight enlargement)
+           const logoHtml = (HARDCODED_LOGO_URL && userState.step === 1) 
+               ? `<div class="w-full text-center pb-4 mb-4 border-b border-gray-700">
+                      <img src="${HARDCODED_LOGO_URL}" alt="Site Logo" class="max-h-12 w-auto mx-auto object-contain" 
+                           onerror="this.style.display='none'">
+                  </div>`
+               : '';
+
+
            quizApp.innerHTML = `
+               ${logoHtml} 
                <div class="space-y-6">
                    <div class="text-center">
                        ${stepCounter}
@@ -170,7 +185,7 @@
                        ${stepContent.body}
                    </div>
 
-                   <!-- Navigation Buttons (Hidden on final Results Step 6) -->
+                   <!-- Navigation Buttons (Hidden on final Results Step 8) -->
                    <div class="flex justify-between pt-4 border-t border-gray-700 ${userState.step === userState.maxSteps ? 'hidden' : ''}">
                        <button onclick="prevStep()" id="prev-btn"
                            class="py-2 px-4 rounded-lg text-sm font-medium transition duration-150 ease-in-out ${userState.step > 1 ? 'bg-gray-700 text-white hover:bg-gray-600' : 'invisible'}"
@@ -197,8 +212,8 @@
                        title: "Find Your Perfect Plan",
                        subtitle: "Answer a few quick questions to get your personalized body transformation recommendation.",
                        body: `
-                           <p class="text-gray-300 mb-4">This short quiz uses your goals and biometrics to calculate your baseline needs and match you with the ideal plan for **Weight Loss**, **Muscle Gain**, or **Maintenance**.</p>
-                           ${createInput('name', 'What should we call you?', 'text', 'e.g., Mark', 'required')}
+                           <p class="text-gray-300 mb-4">This short quiz uses your goals and biometrics to calculate your baseline needs and match you with the ideal plan.</p>
+                           ${createInput('name', 'What is your Name?', 'text', 'e.g., Alex', 'required')}
                        `
                    };
                case 2: // Goal
@@ -206,7 +221,7 @@
                        title: "What is your main goal?",
                        subtitle: "Select the outcome you are primarily targeting right now.",
                        body: `
-                           ${createRadioOption('goal', 'lose', 'Weight Loss', 'Focus on shedding body fat and slimming down.')}
+                           ${createRadioOption('goal', 'lose', 'Weight Loss (Fat)', 'Focus on shedding body fat and slimming down.')}
                            ${createRadioOption('goal', 'gain', 'Muscle Gain', 'Focus on building muscle mass and strength.')}
                            ${createRadioOption('goal', 'maintain', 'Maintenance', 'Focus on improving fitness and staying healthy.')}
                        `
@@ -220,8 +235,7 @@
                                ${createInput('age', 'Age (Years)', 'number', 'e.g., 30', 'required')}
                                ${createInput('height_cm', 'Height (cm)', 'number', 'e.g., 175', 'required')}
                                ${createInput('weight_kg', 'Current Weight (kg)', 'number', 'e.g., 75', 'required')}
-                               ${createInput('target_weight_kg', 'Target Weight (kg)', 'number', 'e.g., 70', 'required')} <!-- ADDED INPUT -->
-
+                               ${createInput('target_weight_kg', 'Target Weight (kg)', 'number', 'e.g., 70', 'required')}
                                <label class="block text-sm font-medium text-gray-300 mb-2">Gender</label>
                                <div class="flex space-x-4">
                                    ${createRadioOption('gender', 'male', 'Male', '', true, 'w-1/2')}
@@ -230,18 +244,18 @@
                            </form>
                        `
                    };
-               case 4: // Activity
+               case 4: // Activity (Shifted to Step 4)
                    return {
                        title: "Your Activity Level",
                        subtitle: "How often do you currently exercise each week?",
                        body: `
-                           ${createRadioOption('activity', 1.2, 'Sedentary', 'Little to no exercise.')}
+                           ${createRadioOption('activity', 1.2, 'Sedentary', 'Little to no exercise (desk job).')}
                            ${createRadioOption('activity', 1.375, 'Lightly Active', 'Light exercise/sports 1-3 days per week.')}
                            ${createRadioOption('activity', 1.55, 'Moderately Active', 'Moderate exercise/sports 3-5 days per week.')}
                            ${createRadioOption('activity', 1.725, 'Very Active', 'Hard exercise/sports 6-7 days per week.')}
                        `
                    };
-               case 5: // Diet Plan
+               case 5: // Diet Plan (Shifted to Step 5)
                    return {
                        title: "What is your current eating plan?",
                        subtitle: "This helps us understand your habits, but won't change your product recommendation.",
@@ -253,7 +267,27 @@
                            ${createRadioOption('diet_plan', 'other', 'Other/None Specific', 'Following a different plan or no specific plan.')}
                        `
                    };
-               case 6: // Results Step
+               case 6: // NEW: Experience Level (Updated to focus on current physical fitness)
+                   return {
+                       title: "Your Current Fitness & Strength Level",
+                       subtitle: "How would you rate your current physical capacity and baseline strength?",
+                       body: `
+                           ${createRadioOption('experience', 'beginner', 'Beginner', 'Minimal current strength/stamina; haven\'t exercised consistently in 6+ months.')}
+                           ${createRadioOption('experience', 'intermediate', 'Intermediate', 'Regularly active (2-3 times/week); possess moderate stamina and strength.')}
+                           ${createRadioOption('experience', 'advanced', 'Advanced', 'Train consistently (4+ times/week); high strength levels and excellent cardiovascular stamina.')}
+                       `
+                   };
+               case 7: // NEW: Program Focus
+                   return {
+                       title: "What are you looking for?",
+                       subtitle: "Tell us if you need help with workouts, nutrition, or both.",
+                       body: `
+                           ${createRadioOption('focus', 'workout', 'Workout Program Only', 'I only need a structured training routine.')}
+                           ${createRadioOption('focus', 'diet', 'Diet Plan Only', 'I only need nutrition and meal guidance.')}
+                           ${createRadioOption('focus', 'complete', 'Complete System (Both)', 'I need a full program covering both workouts and diet.')}
+                       `
+                   };
+               case 8: // Results Step (Shifted to Step 8)
                    // Final Calculation step before results
                    calculateRecommendation();
                    return renderResultsPage();
@@ -294,11 +328,11 @@
        }
 
        function attachInputListeners(step) {
-           // Attach listener for general input updates on question steps (1 through 5)
-           if (step >= 1 && step <= 5) { // Steps with Name, Goal, Info, Activity, Diet
+           // Attach listener for general input updates on question steps (1 through 7)
+           if (step >= 1 && step <= 7) { 
                const stepBody = document.getElementById('step-body');
                if (stepBody) {
-                   // Listener for radio buttons (Goal, Gender, Activity, Diet Plan)
+                   // Listener for radio buttons (Goal, Gender, Activity, Diet Plan, Experience, Focus)
                    stepBody.querySelectorAll('input[type="radio"]').forEach(radio => {
                        radio.addEventListener('change', (e) => {
                            userState.answers[e.target.name] = e.target.value;
@@ -332,7 +366,7 @@
            const answers = userState.answers;
 
            switch (step) {
-               case 1: // Welcome/Name
+               case 1: 
                    const nameInput = document.getElementById('name');
                    if (!nameInput || nameInput.value.trim().length < 2) {
                        displayError("Please enter your name to personalize your plan.");
@@ -346,14 +380,13 @@
                        return false;
                    }
                    return true;
-               case 3: // Personal Info (Age, Height, Current Weight, Target Weight, Gender)
-                   // Basic validation: Check if fields are filled and within bounds
-                   if (!answers.age || answers.age < 18 || answers.age > 100 || 
+               case 3: // Personal Info
+                   if (!answers.age || answers.age < 16 || answers.age > 100 || 
                        !answers.height_cm || answers.height_cm < 100 || answers.height_cm > 250 || 
                        !answers.weight_kg || answers.weight_kg < 30 || answers.weight_kg > 300 || 
                        !answers.target_weight_kg || answers.target_weight_kg < 30 || answers.target_weight_kg > 300 || 
                        !answers.gender) {
-                       displayError("Please ensure all personal details are filled and valid (Age 18-100, Height 100-250cm, Weight/Target 30-300kg).");
+                       displayError("Please ensure all personal details are filled and valid.");
                        return false;
                    }
 
@@ -363,15 +396,15 @@
                    const goal = answers.goal;
 
                    if (goal === 'lose' && targetWeight >= currentWeight) {
-                       displayError("For a 'Weight Loss' goal, your Target Weight must be less than your Current Weight.");
+                       displayError("For 'Weight Loss', your Target Weight must be less than your Current Weight.");
                        return false;
                    }
                    if (goal === 'gain' && targetWeight <= currentWeight) {
-                       displayError("For a 'Muscle Gain' goal, your Target Weight must be greater than your Current Weight.");
+                       displayError("For 'Muscle Gain', your Target Weight must be greater than your Current Weight.");
                        return false;
                    }
                    if (goal === 'maintain' && Math.abs(targetWeight - currentWeight) > 5) {
-                       displayError("For a 'Maintenance' goal, your Target Weight should be within 5kg of your Current Weight.");
+                       displayError("For 'Maintenance', your Target Weight should be within 5kg of your Current Weight.");
                        return false;
                    }
 
@@ -388,7 +421,19 @@
                        return false;
                    }
                    return true;
-               case 6: // Results step (no validation needed here)
+               case 6: // NEW: Experience
+                   if (!answers.experience) {
+                       displayError("Please select your fitness experience level.");
+                       return false;
+                   }
+                   return true;
+               case 7: // NEW: Focus
+                   if (!answers.focus) {
+                       displayError("Please select your program focus.");
+                       return false;
+                   }
+                   return true;
+               case 8: // Results step
                    return true;
                default:
                    return true;
@@ -397,8 +442,6 @@
 
        function nextStep() {
            if (validateStep(userState.step)) {
-               
-               // Normal step progression: if the current step is less than the max step, increment and render.
                if (userState.step < userState.maxSteps) {
                    userState.step++;
                    renderQuiz();
@@ -414,19 +457,15 @@
        }
 
        function retakeQuiz() {
-           // Reset to the first step
+           // Reset state
            userState.step = 1;
-           // Clear all answers (optional, but good practice for a full reset)
            userState.answers = {
-               name: null, 
-               goal: null, 
-               gender: null, 
-               age: null,
-               height_cm: null,
-               weight_kg: null,
-               target_weight_kg: null, // Reset target weight
-               activity: null, 
-               diet_plan: null,
+               name: null, goal: null, gender: null, age: null,
+               height_cm: null, weight_kg: null, target_weight_kg: null,
+               activity: null, diet_plan: null, experience: null, focus: null,
+           };
+           userState.calculated = {
+               bmr: 0, tdee: 0, calorieTarget: 0, finalProducts: [],
            };
            renderQuiz();
        }
@@ -434,64 +473,106 @@
        // --- Calculation and Recommendation Logic ---
 
        function calculateRecommendation() {
-           const { goal, gender, age, height_cm, weight_kg, activity } = userState.answers;
-           const product = PRODUCTS[goal];
-
-           // 1. Calculate BMR
+           const { goal, gender, age, height_cm, weight_kg, activity, experience, focus } = userState.answers;
+           
+           // 1. Calculate BMR & TDEE (using current weight)
            const bmr = calculateBMR(gender, weight_kg, height_cm, age);
-           userState.calculated.bmr = bmr;
-
-           // 2. Calculate TDEE
            const tdee = calculateTDEE(bmr, parseFloat(activity));
+           userState.calculated.bmr = bmr;
            userState.calculated.tdee = tdee;
 
-           // 3. Set Calorie Target based on Goal (Calculation remains, display is removed)
+           // 2. Set Calorie Target based on Goal
            let target = tdee;
            if (goal === 'lose') {
-               target = tdee - 500; // 500 calorie deficit for moderate loss
+               target = tdee - 500; // 500 calorie deficit
            } else if (goal === 'gain') {
-               target = tdee + 300; // 300 calorie surplus for moderate gain
+               target = tdee + 300; // 300 calorie surplus
            }
            userState.calculated.calorieTarget = target;
 
-           // 4. Set Product Recommendation
-           userState.calculated.recommendedProduct = product.name;
-           userState.calculated.productLink = product.link;
-           userState.calculated.productDescription = product.description;
+           // 3. Determine Final Products based on Experience and Focus
+           userState.calculated.finalProducts = [];
+           const finalProducts = [];
+           
+           // Find the core product key based on goal and experience (e.g., 'lose_beginner')
+           const coreProductKey = `${goal}_${experience}`;
+           const coreProduct = PRODUCTS[coreProductKey]; 
+           
+           // Logic to populate finalProducts array
+           if (focus === 'workout' && coreProduct) {
+               // Workout Program Only: Use the main system product, but label it as workout only
+               const workoutProduct = { ...coreProduct, name: `${coreProduct.name} (Workout Program Only)`};
+               finalProducts.push(workoutProduct);
+
+           } else if (focus === 'diet') {
+               // Diet Plan Only: Use the dedicated pure_diet_plan
+               finalProducts.push(PRODUCTS['pure_diet_plan']);
+
+           } else if (focus === 'complete' && coreProduct) {
+               // Complete System (Both): Use the main system AND the diet manual add-on
+               finalProducts.push(coreProduct); // Main System
+               finalProducts.push(PRODUCTS['diet_manual_add_on']); // Diet Manual
+           }
+
+           userState.calculated.finalProducts = finalProducts;
        }
 
        // --- Results Page Rendering ---
 
        function renderResultsPage() {
-           const { tdee, recommendedProduct, productLink, productDescription } = userState.calculated;
-           const productData = PRODUCTS[userState.answers.goal];
-           const name = userState.answers.name || 'Friend'; // Get the name for personalization
+           const { tdee, calorieTarget, finalProducts } = userState.calculated;
+           const name = userState.answers.name || 'Friend';
+
+           let targetLabel = "Daily Calorie Target for Maintenance";
+           if (userState.answers.goal === 'lose') {
+               targetLabel = "Daily Calorie Target for Fat Loss (Deficit)";
+           } else if (userState.answers.goal === 'gain') {
+               targetLabel = "Daily Calorie Target for Muscle Gain (Surplus)";
+           }
+
+           // Dynamically generate product cards
+           const productCardsHtml = finalProducts.map((product, index) => {
+               const isPrimary = index === 0;
+               const borderColor = isPrimary ? 'border-secondary' : 'border-accent-red';
+               
+               // Use placeholder image URL for all products
+               const placeholderImage = `https://placehold.co/150x150/${isPrimary ? 'FBBF24' : 'EF4444'}/1F2937?text=${product.type.replace(/\s/g, '+')}`;
+
+               return `
+                   <div class="bg-dark-input rounded-xl p-6 shadow-md border-t-4 ${borderColor} ${finalProducts.length > 1 ? 'mt-4' : 'mt-0'}">
+                       <p class="text-sm font-semibold text-gray-400 mb-2 uppercase">${product.type} RECOMMENDATION</p>
+                       <img src="${placeholderImage}" alt="${product.name}" 
+                           class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-dark-surface shadow-lg">
+                       <h3 class="text-xl font-extrabold ${isPrimary ? 'text-primary' : 'text-accent-red'}">${product.name}</h3>
+                       <p class="text-gray-400 mt-2">${product.description}</p>
+
+                       <a href="${product.link}" target="_blank"
+                           class="mt-6 inline-block w-full py-3 px-6 rounded-lg text-lg font-bold text-dark-surface ${isPrimary ? 'bg-secondary hover:bg-yellow-500' : 'bg-accent-red hover:bg-red-400'} transition duration-150 ease-in-out shadow-lg hover:shadow-xl">
+                           View Details →
+                       </a>
+                   </div>
+               `;
+           }).join('');
+
 
            return {
-               // NEW TITLE
-               title: `Thanks, ${name}!`, 
-               // NEW SUBTITLE
-               subtitle: `Here is your personal recommendation for the product that matches your answers and that will help you achieve your goal in the shortest possible time.`, 
+               title: `Thanks, ${name}! Here are Your Results.`, 
+               subtitle: `Based on your goal, experience, and focus, here is your personalized plan and calorie target.`, 
                body: `
                    <div class="space-y-6 text-center">
-                       <!-- TDEE Card (Calorie Target Display Removed) -->
+                       <!-- TDEE & Target Card -->
                        <div class="bg-primary text-dark-surface rounded-xl p-5 shadow-lg">
                            <p class="text-sm font-light uppercase opacity-80">Estimated Daily Energy Expenditure (TDEE)</p>
                            <p class="text-4xl font-extrabold mt-1">${tdee} <span class="text-2xl font-light">cals</span></p>
-                           <!-- The Calorie Target display was removed as requested -->
+                           
+                           <!-- Dynamic Calorie Target Display -->
+                           <p class="mt-4 text-sm font-light uppercase opacity-80">${targetLabel}</p>
+                           <p class="text-2xl font-bold">${calorieTarget} <span class="text-xl font-light">cals</span></p>
                        </div>
 
-                       <!-- Product Recommendation -->
-                       <div class="bg-dark-input rounded-xl p-6 shadow-md border-t-4 border-secondary">
-                           <p class="text-sm font-semibold text-gray-300 mb-2">YOUR RECOMMENDED PRODUCT:</p>
-                           <img src="${productData.image}" alt="${recommendedProduct}" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-dark-surface shadow-lg">
-                           <h3 class="text-xl font-extrabold text-primary">${recommendedProduct}</h3>
-                           <p class="text-gray-400 mt-2">${productDescription}</p>
-
-                           <a href="${productLink}" target="_blank"
-                               class="mt-6 inline-block w-full py-3 px-6 rounded-lg text-lg font-bold text-dark-surface bg-secondary hover:bg-yellow-500 transition duration-150 ease-in-out shadow-lg hover:shadow-xl">
-                               View Product Details →
-                           </a>
+                       <!-- Product Recommendation Cards -->
+                       <div class="space-y-4">
+                           ${productCardsHtml}
                        </div>
                    </div>
 

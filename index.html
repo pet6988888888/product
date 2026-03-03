@@ -79,22 +79,23 @@
 
        // --- Core State Management ---
        const quizApp = document.getElementById('quiz-app');
-       const userState = {
-           step: 1,
-           maxSteps: 8, // 7 question steps (1-7) and 1 results step (8)
-           answers: {
-               name: null, 
-               goal: null, 
-               gender: null, 
-               age: null,
-               height_cm: null,
-               weight_kg: null,
-               target_weight_kg: null,
-               activity: null, 
-               diet_plan: null,
-               experience: null, // NEW: Experience Level
-               focus: null,      // NEW: Program Focus (Workout, Diet, Complete)
-           },
+        const userState = {
+            step: 1,
+            maxSteps: 8,
+            useMetric: true, // true = Metric, false = Imperial
+            answers: {
+                name: null, 
+                goal: null, 
+                gender: null, 
+                age: null,
+                height_cm: null,
+                weight_kg: null,
+                target_weight_kg: null,
+                activity: null, 
+                diet_plan: null,
+                experience: null,
+                focus: null,
+            },
            calculated: {
                bmr: 0,
                tdee: 0,
@@ -106,21 +107,21 @@
        // --- Products Object ---
        const PRODUCTS = {
            // 9 Main Systems (Workout + Diet) determined by Goal & Experience
-           lose_beginner: { type: "System", name: "Beginner 4-Week Fat Loss & Nutrition Starter", link: "https://payhip.com/p/LBS", description: "Simple workouts, form instruction, and basic calorie deficit tracking." },
-           lose_intermediate: { type: "System", name: "Intermediate 8-Week Shredding Program", link: "https://payhip.com/p/LIM", description: "Progressive compound lifts, effective splits, and moderate calorie cycling." },
-           lose_advanced: { type: "System", name: "Elite Max-Fat Burn Protocol", link: "https://payhip.com/p/LAE", description: "Intense training, advanced techniques, and aggressive deficit strategies for maximum definition." },
+            lose_beginner: { type: "System", name: "Beginner 4-Week Fat Loss Home Workout Program", link: "https://payhip.com/b/OYbdV", description: "Beginner-friendly home fat-loss workouts focused on form and consistency.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_423.jpg" },
+            lose_intermediate: { type: "System", name: "Intermediate 4-Week Fat Loss Home Workout Program", link: "https://payhip.com/b/lrNxW", description: "Progressive fat-burning workouts with structured training splits.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_420.jpg" },
+            lose_advanced: { type: "System", name: "Advanced 4-Week Fat Loss Home Workout Program", link: "https://payhip.com/b/oOQyC", description: "High-intensity advanced workouts designed for maximum fat burn.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_422.jpg" },
 
-           gain_beginner: { type: "System", name: "Start Strong: Beginner Muscle Mass System", link: "https://payhip.com/p/GBS", description: "Fundamental movements, proper muscle activation, and basic surplus tracking." },
-           gain_intermediate: { type: "System", name: "Hypertrophy Accelerator Program", link: "https://payhip.com/p/GIM", description: "Optimized volume training splits, progressive overload, and customized macros." },
-           gain_advanced: { type: "System", name: "Pro-Level Strength & Size Program", link: "https://payhip.com/p/GAE", description: "Periodized cycles, high-frequency training, and strategic recovery." },
+            gain_beginner: { type: "System", name: "Beginner 4-Week Home Muscle Building Workout Program", link: "https://payhip.com/b/OYbdV", description: "Foundational muscle-building workouts for strength and size.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_423.jpg" },
+            gain_intermediate: { type: "System", name: "Intermediate 4-Week Home Muscle Building Workout Program", link: "https://payhip.com/b/lrNxW", description: "Structured hypertrophy workouts with progressive overload.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_420.jpg" },
+            gain_advanced: { type: "System", name: "Advanced 4-Week Home Muscle Building Workout Program", link: "https://payhip.com/b/oOQyC", description: "Advanced strength and size training with high-frequency volume.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_422.jpg" },
 
-           maintain_beginner: { type: "System", name: "Foundational Fitness & Health Guide", link: "https://payhip.com/p/MBS", description: "Establishing habits, functional training, and balanced energy levels." },
-           maintain_intermediate: { type: "System", name: "Balanced Lifestyle and Endurance Plan", link: "https://payhip.com/p/MIM", description: "Optimizing stamina, mobility, and body composition maintenance." },
-           maintain_advanced: { type: "System", name: "Peak Performance & Longevity Plan", link: "https://payhip.com/p/MAE", description: "Maintaining elite fitness, managing fatigue, and recovery focus." },
+            maintain_beginner: { type: "System", name: "Beginner 4-Week Maintenance Home Workout Program", link: "https://payhip.com/b/OYbdV", description: "Balanced beginner workouts to maintain fitness and energy.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_423.jpg" },
+            maintain_intermediate: { type: "System", name: "Intermediate 4-Week Maintenance Home Workout Program", link: "https://payhip.com/b/lrNxW", description: "Structured workouts for endurance and physique maintenance.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_420.jpg" },
+            maintain_advanced: { type: "System", name: "Advanced 4-Week Maintenance Home Workout Program", link: "https://payhip.com/b/oOQyC", description: "Maintaining elite fitness, managing fatigue, and recovery focus.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_422.jpg" },
 
-           // Dedicated Diet/Nutrition Products (Used when 'focus' is Diet or Complete)
-           pure_diet_plan: { type: "Diet Only", name: "The Complete Nutrition Strategy Manual", link: "https://payhip.com/p/DietOnly", description: "Comprehensive guidance on meal timing, tracking, and calculating macros—no workout plan included." },
-           diet_manual_add_on: { type: "Diet Add-On", name: "Exclusive Recipe & Meal Prep Manual", link: "https://payhip.com/p/AddOnDiet", description: "Your supplementary guide for thousands of meal ideas and preparation tips to pair with any workout system." },
+            // Dedicated Diet/Nutrition Products (Used when 'focus' is Diet or Complete)
+            pure_diet_plan: { type: "Diet Only", name: "The Complete Result Driven Eating Plan", link: "https://payhip.com/b/woDqv", description: "A complete healthy eating plan designed for real life and built to work seamlessly with all our workout programs.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_421.jpg" },
+            diet_manual_add_on: { type: "Diet Add-On", name: "The Complete Result Driven Eating Plan", link: "https://payhip.com/b/woDqv", description: "A complete healthy eating plan designed for real life and built to work seamlessly with all our workout programs.", image: "https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_421.jpg" },
        };
        // --- Utility Functions ---
 
@@ -226,24 +227,49 @@
                            ${createRadioOption('goal', 'maintain', 'Maintenance', 'Focus on improving fitness and staying healthy.')}
                        `
                    };
-               case 3: // Personal Info
-                   return {
-                       title: "Tell us about yourself",
-                       subtitle: "We need a few details for accurate calculations.",
-                       body: `
-                           <form id="personal-form" onsubmit="return false;" class="space-y-4">
-                               ${createInput('age', 'Age (Years)', 'number', 'e.g., 30', 'required')}
-                               ${createInput('height_cm', 'Height (cm)', 'number', 'e.g., 175', 'required')}
-                               ${createInput('weight_kg', 'Current Weight (kg)', 'number', 'e.g., 75', 'required')}
-                               ${createInput('target_weight_kg', 'Target Weight (kg)', 'number', 'e.g., 70', 'required')}
-                               <label class="block text-sm font-medium text-gray-300 mb-2">Gender</label>
-                               <div class="flex space-x-4">
-                                   ${createRadioOption('gender', 'male', 'Male', '', true, 'w-1/2')}
-                                   ${createRadioOption('gender', 'female', 'Female', '', true, 'w-1/2')}
-                               </div>
-                           </form>
-                       `
-                   };
+                case 3: // Personal Info
+                    const isMetric = userState.useMetric;
+                    const heightLabel = isMetric ? 'Height (cm)' : 'Height (inches)';
+                    const heightPlaceholder = isMetric ? 'e.g., 175' : 'e.g., 69';
+                    const weightLabel = isMetric ? 'Current Weight (kg)' : 'Current Weight (lbs)';
+                    const weightPlaceholder = isMetric ? 'e.g., 75' : 'e.g., 165';
+                    const targetLabel3 = isMetric ? 'Target Weight (kg)' : 'Target Weight (lbs)';
+                    const targetPlaceholder = isMetric ? 'e.g., 70' : 'e.g., 154';
+
+                    // Convert stored metric values to imperial for display if needed
+                    let displayHeight = userState.answers.height_cm;
+                    let displayWeight = userState.answers.weight_kg;
+                    let displayTarget = userState.answers.target_weight_kg;
+                    if (!isMetric && displayHeight) displayHeight = Math.round(displayHeight / 2.54 * 10) / 10;
+                    if (!isMetric && displayWeight) displayWeight = Math.round(displayWeight * 2.205 * 10) / 10;
+                    if (!isMetric && displayTarget) displayTarget = Math.round(displayTarget * 2.205 * 10) / 10;
+
+                    return {
+                        title: "Tell us about yourself",
+                        subtitle: "We need a few details for accurate calculations.",
+                        body: `
+                            <!-- Metric / Imperial Toggle -->
+                            <div class="flex items-center justify-center gap-3 mb-2">
+                                <span class="text-sm font-medium ${!isMetric ? 'text-primary' : 'text-gray-400'}">Imperial</span>
+                                <button onclick="toggleUnits()" id="unit-toggle" 
+                                    class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${isMetric ? 'bg-primary' : 'bg-gray-600'}">
+                                    <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${isMetric ? 'translate-x-6' : 'translate-x-1'}"></span>
+                                </button>
+                                <span class="text-sm font-medium ${isMetric ? 'text-primary' : 'text-gray-400'}">Metric</span>
+                            </div>
+                            <form id="personal-form" onsubmit="return false;" class="space-y-4">
+                                ${createInputWithValue('age', 'Age (Years)', 'number', 'e.g., 30', 'required', userState.answers.age)}
+                                ${createInputWithValue('height_display', heightLabel, 'number', heightPlaceholder, 'required', displayHeight)}
+                                ${createInputWithValue('weight_display', weightLabel, 'number', weightPlaceholder, 'required', displayWeight)}
+                                ${createInputWithValue('target_display', targetLabel3, 'number', targetPlaceholder, 'required', displayTarget)}
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Gender</label>
+                                <div class="flex space-x-4">
+                                    ${createRadioOption('gender', 'male', 'Male', '', true, 'w-1/2')}
+                                    ${createRadioOption('gender', 'female', 'Female', '', true, 'w-1/2')}
+                                </div>
+                            </form>
+                        `
+                    };
                case 4: // Activity (Shifted to Step 4)
                    return {
                        title: "Your Activity Level",
@@ -294,9 +320,52 @@
                default:
                    return { title: "Error", subtitle: "Something went wrong.", body: "" };
            }
-       }
+        }
 
-       function createRadioOption(name, value, label, description, isSmall = false, classes = '') {
+        function createInputWithValue(name, label, type, placeholder, required, value) {
+            const val = value != null ? value : '';
+            return `
+                <div>
+                    <label for="${name}" class="block text-sm font-medium text-gray-300">${label}</label>
+                    <input type="${type}" id="${name}" name="${name}" value="${val}" placeholder="${placeholder}" ${required}
+                        class="mt-1 block w-full rounded-lg border-gray-600 shadow-sm p-3 text-base border focus:ring-primary focus:border-primary bg-dark-input placeholder-gray-500"
+                        min="0" step="0.1"
+                    />
+                </div>
+            `;
+        }
+
+        function toggleUnits() {
+            // Before toggling, save current displayed values and convert
+            saveStep3Values();
+            userState.useMetric = !userState.useMetric;
+            renderQuiz();
+        }
+
+        function saveStep3Values() {
+            const isMetric = userState.useMetric;
+            const ageEl = document.getElementById('age');
+            const heightEl = document.getElementById('height_display');
+            const weightEl = document.getElementById('weight_display');
+            const targetEl = document.getElementById('target_display');
+
+            if (ageEl) userState.answers.age = parseFloat(ageEl.value) || null;
+
+            if (heightEl && heightEl.value) {
+                const h = parseFloat(heightEl.value);
+                userState.answers.height_cm = isMetric ? h : Math.round(h * 2.54 * 10) / 10;
+            }
+            if (weightEl && weightEl.value) {
+                const w = parseFloat(weightEl.value);
+                userState.answers.weight_kg = isMetric ? w : Math.round(w / 2.205 * 10) / 10;
+            }
+            if (targetEl && targetEl.value) {
+                const t = parseFloat(targetEl.value);
+                userState.answers.target_weight_kg = isMetric ? t : Math.round(t / 2.205 * 10) / 10;
+            }
+        }
+
+        function createRadioOption(name, value, label, description, isSmall = false, classes = '') {
            const checked = userState.answers[name] == value ? 'checked' : '';
            const descHtml = description ? `<p class="text-xs text-gray-400 mt-1">${description}</p>` : '';
            const sizeClasses = isSmall ? 'p-3' : 'p-4';
@@ -339,16 +408,18 @@
                        });
                    });
 
-                   // Listener for form inputs (Age, Height, Weight, Name)
-                   stepBody.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => {
-                       input.addEventListener('input', (e) => {
-                           if (e.target.type === 'text') {
-                               userState.answers[e.target.id] = e.target.value.trim();
-                           } else {
-                               userState.answers[e.target.id] = parseFloat(e.target.value) || null;
-                           }
-                       });
-                   });
+                    // Listener for form inputs (Age, Height, Weight, Name)
+                    stepBody.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => {
+                        input.addEventListener('input', (e) => {
+                            const id = e.target.id;
+                            if (e.target.type === 'text') {
+                                userState.answers[id] = e.target.value.trim();
+                            } else if (id === 'age') {
+                                userState.answers.age = parseFloat(e.target.value) || null;
+                            }
+                            // height_display, weight_display, target_display are saved on nextStep/toggle
+                        });
+                    });
                }
            }
        }
@@ -380,15 +451,16 @@
                        return false;
                    }
                    return true;
-               case 3: // Personal Info
-                   if (!answers.age || answers.age < 16 || answers.age > 100 || 
-                       !answers.height_cm || answers.height_cm < 100 || answers.height_cm > 250 || 
-                       !answers.weight_kg || answers.weight_kg < 30 || answers.weight_kg > 300 || 
-                       !answers.target_weight_kg || answers.target_weight_kg < 30 || answers.target_weight_kg > 300 || 
-                       !answers.gender) {
-                       displayError("Please ensure all personal details are filled and valid.");
-                       return false;
-                   }
+                case 3: // Personal Info
+                    saveStep3Values(); // Convert display values to metric for storage
+                    if (!answers.age || answers.age < 16 || answers.age > 100 || 
+                        !answers.height_cm || answers.height_cm < 100 || answers.height_cm > 250 || 
+                        !answers.weight_kg || answers.weight_kg < 30 || answers.weight_kg > 300 || 
+                        !answers.target_weight_kg || answers.target_weight_kg < 30 || answers.target_weight_kg > 300 || 
+                        !answers.gender) {
+                        displayError("Please ensure all personal details are filled and valid.");
+                        return false;
+                    }
 
                    // Goal consistency check
                    const currentWeight = answers.weight_kg;
@@ -458,7 +530,8 @@
 
        function retakeQuiz() {
            // Reset state
-           userState.step = 1;
+            userState.step = 1;
+            userState.useMetric = true;
            userState.answers = {
                name: null, goal: null, gender: null, age: null,
                height_cm: null, weight_kg: null, target_weight_kg: null,
@@ -483,11 +556,11 @@
 
            // 2. Set Calorie Target based on Goal
            let target = tdee;
-           if (goal === 'lose') {
-               target = tdee - 500; // 500 calorie deficit
-           } else if (goal === 'gain') {
-               target = tdee + 300; // 300 calorie surplus
-           }
+            if (goal === 'lose') {
+                target = Math.round(tdee * 0.80); // 20% calorie deficit
+            } else if (goal === 'gain') {
+                target = Math.round(tdee * 1.20); // 20% calorie surplus
+            }
            userState.calculated.calorieTarget = target;
 
            // 3. Determine Final Products based on Experience and Focus
@@ -535,15 +608,13 @@
                const isPrimary = index === 0;
                const borderColor = isPrimary ? 'border-secondary' : 'border-accent-red';
                
-               // Use placeholder image URL for all products
-               const placeholderImage = `https://placehold.co/150x150/${isPrimary ? 'FBBF24' : 'EF4444'}/1F2937?text=${product.type.replace(/\s/g, '+')}`;
-
-               return `
-                   <div class="bg-dark-input rounded-xl p-6 shadow-md border-t-4 ${borderColor} ${finalProducts.length > 1 ? 'mt-4' : 'mt-0'}">
-                       <p class="text-sm font-semibold text-gray-400 mb-2 uppercase">${product.type} RECOMMENDATION</p>
-                       <img src="${placeholderImage}" alt="${product.name}" 
-                           class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-dark-surface shadow-lg">
-                       <h3 class="text-xl font-extrabold ${isPrimary ? 'text-primary' : 'text-accent-red'}">${product.name}</h3>
+                  const productImage = product.image || `https://placehold.co/480x252/${isPrimary ? 'FBBF24' : 'EF4444'}/1F2937?text=${product.type.replace(/\s/g, '+')}`;
+                 return `
+                     <div class="bg-dark-input rounded-xl p-6 shadow-md border-t-4 ${borderColor} ${finalProducts.length > 1 ? 'mt-4' : 'mt-0'}">
+                         <p class="text-sm font-semibold text-gray-400 mb-2 uppercase">${product.type} RECOMMENDATION</p>
+                         <img src="${productImage}" alt="${product.name}" 
+                             class="w-full rounded-lg mx-auto mb-4 shadow-lg object-cover" style="width: 480px; height: 252px; max-width: 100%;">
+                        <h3 class="text-xl font-extrabold ${isPrimary ? 'text-primary' : 'text-accent-red'}">${product.name}</h3>
                        <p class="text-gray-400 mt-2">${product.description}</p>
 
                        <a href="${product.link}" target="_blank"
